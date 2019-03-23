@@ -45,28 +45,26 @@ pip install --global-option="--salt-root-dir=$(pwd)/plugins/salt/" salt==2018.3.
 [前段访问]：https://IP地址:端口号 用户名：admin 密码: admin<br>
 [修改safekey]: 首次使用建议修改passkey，可通过API接口重置管理员密码[python tools/API.py API resetAdminPass newpass]<br>
 
-### 备注：程序WebSSH组件为自选组件，默认不安装，如果安装的话，可参照下列步骤。<br>
-### 获取WebSSH2代码
-git clone https://github.com/billchurch/WebSSH2 <br>
-### 安装nvm、nodejs、npm工具链 <br> 
+5. 程序WebSSH组件为自选组件，默认不安装，如果安装的话，可参照下列步骤。<br>
+[获取WebSSH2代码]: git clone https://github.com/billchurch/WebSSH2 <br>
+[安装nvm、nodejs、npm工具链]: <br>
 curl  -o - https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh |bash <br>
 nvm install v10.14.2<br>
-### 进入WebSSH2程序目录,安装项目,启动项目,为和项目配合，这里采用密钥认证自动登录
+进入WebSSH2程序目录,安装项目,启动项目,为和项目配合，这里采用密钥认证自动登录 <br>
 cd WebSSH2/app <br>
 npm install --production <br>
-### 修改配置
-vim WebSSH2/app/server/socket.js
+[修改配置]: vim WebSSH2/app/server/socket.js <br>
 
 =======分割线开始===================================================<br>
-var fs = require('fs'); //第一行添加
-#修改 conn.connect 方法, 注释password, 添加privateKey
-      username: socket.request.session.username,
-      //password: socket.request.session.userpassword,
-      privateKey: fs.readFileSync('替代程序目录/plugins/salt/etc/salt/pki/master/ssh/salt-ssh.rsa'),
+var fs = require('fs'); //第一行添加 <br>
+修改 conn.connect 方法, 注释password, 添加privateKey <br>
+    username: socket.request.session.username, <br>
+    //password: socket.request.session.userpassword, <br>
+    privateKey: fs.readFileSync('替代程序目录/plugins/salt/etc/salt/pki/master/ssh/salt-ssh.rsa'), <br>
 ==========分割线====================================================<br>
 
-npm start <br>
-### 主要配置参数文件，可按自行参数自行修改。强烈建议关闭外部映射，通过VPN方式进行远程维护
+[手动启动webssh,后续将随lnmOPS服务自动启动]: npm start <br>
+主要配置参数文件，可按自行参数自行修改。强烈建议关闭外部映射，通过VPN方式进行远程维护 <br>
 config.json （修改监听端口）<br>
 erver/socket.js (修改验证方式)<br>
 
