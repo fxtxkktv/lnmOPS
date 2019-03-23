@@ -17,7 +17,7 @@ progname=$(which npm)
 case "$1" in
   start)
         echo -en "Starting WEBSSHServer:\t\t"
-        $wkdir/sbin/start-stop-daemon --start --background -m --pidfile /tmp/webssh.pid -d $wkdir/WebSSH --exec $progname -- 'start' >/dev/null 2>&1
+        $wkdir/sbin/start-stop-daemon --start --background -m --pidfile /tmp/webssh.pid -d $wkdir/WebSSH2/app --exec $progname -- 'start' >/dev/null 2>&1
         RETVAL=$?
         #echo
         if [ $RETVAL -eq 0 ] ;then

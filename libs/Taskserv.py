@@ -12,7 +12,7 @@
 #       重启: python Taskserv.py  restart
 #       查看: ps -axj | grep Taskserv
  
-import atexit, os, sys, time, signal, re, sqlite3
+import atexit, os, sys, time, signal, re
 import datetime
 import importlib
 import Global as gl

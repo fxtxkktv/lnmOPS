@@ -9,3 +9,4 @@ certs/*.pem
 certs/*.txt
 DevelPython/*
 venv/*
+WebSSH2/*

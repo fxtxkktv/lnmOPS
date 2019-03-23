@@ -72,7 +72,7 @@
                 <span class="widget-caption themesecondary">管理日志</span>
 		<a href="/applog" style="float:right;" ><i class="fa fa-sliders"></i></a>
             </div>
-            <div class="box-content">
+            <div class="box-content" style="height:300px;">
 		<div style="display: block;" id="newpage2">
                     <table class="table">
                         <tbody>
