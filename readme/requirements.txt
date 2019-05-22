@@ -11,3 +11,4 @@ pycrypto==2.6.1
 requests==2.21.0
 SQLAlchemy==1.2.16
 pyExcelerator==0.6.4.1
+CherryPy==17.4.1
