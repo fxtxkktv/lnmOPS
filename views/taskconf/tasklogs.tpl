@@ -100,6 +100,8 @@ $(function(){
               formatter: function(value,row,index){
                 if( value == '0' ){
                                 return '<img  src="/assets/img/run_1.gif" class="img-rounded" >';
+                }else if(value == '20'){ 
+                                return '<img  src="/assets/img/run_1.gif" class="img-rounded" >';
                 }else{  return '<img  src="/assets/img/run_0.gif" class="img-rounded" >';
                 }
             }

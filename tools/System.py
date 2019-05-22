@@ -1113,7 +1113,8 @@ def taskconf():
     njobdata = readDb(sql,)
     sql2 = """ SELECT U.id,U.jobtime,U.runstatus,D.taskname FROM apscheduler_logs as U LEFT OUTER JOIN taskconf as D on U.jobid=D.id order by id DESC limit 21 """
     sjobdata = readDb(sql2,)
-    sql3 = """ SELECT U.id,U.jobtime,U.runstatus,D.taskname FROM apscheduler_logs as U LEFT OUTER JOIN taskconf as D on U.jobid=D.id WHERE runstatus != '0' order by id DESC limit 8 """
+    #暂排除runstatus 返回None  数值为20的情况，原因待查
+    sql3 = """ SELECT U.id,U.jobtime,U.runstatus,D.taskname FROM apscheduler_logs as U LEFT OUTER JOIN taskconf as D on U.jobid=D.id WHERE runstatus != '0' AND runstatus != '20' order by id DESC limit 8 """
     errjobdata = readDb(sql3,)
     return template('tasklist',session=s,njobdata=njobdata,sjobdata=sjobdata,errjobdata=errjobdata)
 
