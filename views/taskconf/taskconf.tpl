@@ -1,6 +1,6 @@
 %rebase base position='分组设置',managetopli="opsconf"
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+<link rel="stylesheet" href="/assets/css/bootstrap-select.min.css">
 
 <div class="page-body">
     <div class="row">
@@ -31,7 +31,7 @@
                             <a id="changetask" href="javascript:void(0);" class="btn btn-warning shiny">
                                 <i class="btn-label fa fa-cog"></i>修改任务
                             </a>
-                            <a id="downloadtasklist" href="/downloadtasklist" class="btn btn-inverse">
+                            <a id="downloadtasklist" href="/downloadtasklist" class="btn btn-darkorange">
                                 <i class="btn-label fa fa-download"></i>导出任务
                             </a>
                             &nbsp;
@@ -400,7 +400,7 @@ $(function(){
 });
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
+<script src="/assets/js/bootstrap-select.min.js"></script>
 <script language="JavaScript" type="text/javascript">
 $(function() {
   $("#nodes").selectpicker({noneSelectedText:'请选择节点'}); //修改默认显示值

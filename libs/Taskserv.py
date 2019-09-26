@@ -13,7 +13,7 @@
 #       查看: ps -axj | grep Taskserv
  
 import atexit, os, sys, time, signal, re
-import datetime
+import datetime, logging
 import importlib
 import Global as gl
 
@@ -30,6 +30,12 @@ gl.set_value('tempdir','%s/../template' % pro_path)
 gl.set_value('assets','%s/../assets' % pro_path)
 gl.set_value('vwdir','%s/../views' % pro_path)
 gl.set_value('logs','%s/../logs' % pro_path)
+
+# set log file
+logging.basicConfig(level=logging.DEBUG,format = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S',
+                    filename = "%s/myapp_task.log" % gl.get_value('logs'),
+                    filemode = 'a')
 
 class CDaemon:
     '''
@@ -183,14 +189,8 @@ class ClientDaemon(CDaemon):
         db_port = AppServer().getConfValue('Databases','MysqlPort')
         dbconn = 'mysql://%s:%s@%s:%s/%s' % (db_user,db_pass,db_ip,int(db_port),db_name)
         from MySQL import writeDb
-        # 定义sqlite库文件路径[SQLITE存储模式用到]
-        #dbfile = '/opt/lnmOPS/logs/myapp_task.db'
         # 尝试清空DB数据库中记录的JOB信息
         try:
-            #conn = sqlite3.connect(dbfile)
-            #conn.execute("""delete from apscheduler_jobs ;""")
-            #conn.commit()
-            #conn.close()
             sql = """delete from apscheduler_jobs ;"""
             writeDb(sql,)
         except:
@@ -205,7 +205,6 @@ class ClientDaemon(CDaemon):
         executors = {'default': ThreadPoolExecutor(20), 'processpool': ProcessPoolExecutor(5)}
         scheduler = BackgroundScheduler(timezone='Asia/Shanghai',executors=executors, job_defaults=job_defaults)
         # sqlite or mysql
-        #scheduler.add_jobstore('sqlalchemy', url='sqlite:///%s' % dbfile)
         scheduler.add_jobstore('sqlalchemy', url='%s' % dbconn)
         from MySQL import readDb
         sql = """ Select id,timedesc from taskconf where status='1' """
@@ -215,15 +214,15 @@ class ClientDaemon(CDaemon):
             FunName='TaskFunc_%s' % taskobject.get('id')
             function=getattr(dylib,FunName)
             cronlist=taskobject.get('timedesc').strip().split(' ')
+            print cronlist
             if len(cronlist) == 5:
                scheduler.add_job(func=function,trigger='cron',month=cronlist[4],day=cronlist[3],hour=cronlist[2],minute=cronlist[1],second=cronlist[0], id=Taskid)
             elif len(cronlist) == 6:
                scheduler.add_job(func=function,trigger='cron',day_of_week=cronlist[5],month=cronlist[4],day=cronlist[3],hour=cronlist[2],minute=cronlist[1],second=cronlist[0], id=Taskid)
             else:
                continue
-        #print scheduler.get_jobs()
         scheduler.start()
-        fd = open(output_fn, 'w')
+        fd = open(output_fn, 'a')
         try:
             dtnow = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             line = '\n[%s]: System Starting all Tasks...\n' % dtnow
@@ -247,8 +246,9 @@ if __name__ == '__main__':
         sys.exit(1)
     p_name = 'clientd' #守护进程名称
     pid_fn = '/tmp/myapp_task_class.pid' #守护进程pid文件的绝对路径
-    log_fn = '%s/myapp_task_class.log' % gl.get_value('logs') #守护进程日志文件的绝对路径
-    err_fn = '%s/myapp_taskclass.err.log' % gl.get_value('logs') #守护进程启动过程中的错误日志,内部出错能从这里看到
+    log_fn = '%s/myapp_task.log' % gl.get_value('logs') #守护进程日志文件的绝对路径
+    err_fn = '%s/myapp_task.log' % gl.get_value('logs') #守护进程启动过程中的错误日志,内部出错能从这里看到
+    output_fn = '%s/myapp_task.log' #标准输出内容
     cD = ClientDaemon(p_name, pid_fn, stderr=err_fn, verbose=1)
  
     if sys.argv[1] == 'start':

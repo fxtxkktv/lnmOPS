@@ -25,7 +25,7 @@
                             <!--a id="log" href="/applog" class="btn btn-primary ">
                                 <i class="btn-label fa fa-plus"></i>程序日志
                             </a-->
-			    %if msg.get('message'):
+                            %if msg.get('message'):
                                 <span style="color:{{msg.get('color','')}};font-weight:bold;">&emsp;{{msg.get('message','')}}</span>
                             %end
                         </div>

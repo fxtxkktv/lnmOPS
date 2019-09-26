@@ -92,7 +92,7 @@ $(function(){
               valign: 'middle',
               sortable: false
           },{
-              field: 'runstatus',
+              field: 'success',
               title: '运行状态',
               align: 'center',
               valign: 'middle',
@@ -100,8 +100,8 @@ $(function(){
               formatter: function(value,row,index){
                 if( value == '0' ){
                                 return '<img  src="/assets/img/run_1.gif" class="img-rounded" >';
-                }else if(value == '20'){ 
-                                return '<img  src="/assets/img/run_1.gif" class="img-rounded" >';
+                }else if(value == 8318){ 
+                                return '<img  src="/assets/img/run_10.gif" class="img-rounded" >';
                 }else{  return '<img  src="/assets/img/run_0.gif" class="img-rounded" >';
                 }
             }
@@ -120,7 +120,7 @@ $(function(){
         eval('rowobj='+JSON.stringify(row));
         //定义编辑按钮样式，只有管理员或自己编辑的任务才有权编辑
         if({{session.get('access',None)}} == '1' || "{{session.get('name',None)}}" == rowobj['userid']){
-            var style_record = '<a href="/taskrecord/'+rowobj['id']+'" class="btn-sm btn-info" >';
+            var style_record = '<a href="/taskrecord/'+rowobj['jid']+'" class="btn-sm btn-info" >';
         }else{
             var style_record = '<a class="btn-sm btn-info" disabled>';
         }

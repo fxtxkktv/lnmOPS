@@ -122,6 +122,11 @@
                         <span class="menu-text">软件管理</span>
                     </a>
                 </li>
+                <li class="">
+                    <a href="/faultrecords">
+                        <span class="menu-text">故障记录</span>
+                    </a>
+                </li>
             </ul>
         </li>
 
@@ -151,11 +156,11 @@
                         <span class="menu-text">分组设置</span>
                     </a>
                 </li>
-                <!--li class="">
+                <li class="">
                     <a href="/apilists">
                         <span class="menu-text">API管理</span>
                     </a>
-                </li-->
+                </li>
             </ul>
         </li>
 
@@ -172,7 +177,12 @@
             <ul class="submenu">
                 <li class="">
                     <a href="/showservlog">
-                        <span class="menu-text">运维日志</span>
+                        <span class="menu-text">WEB日志</span>
+                    </a>
+                </li>
+                <li class="">
+                    <a href="/showtasklog">
+                        <span class="menu-text">任务日志</span>
                     </a>
                 </li>
                 <li class="">
@@ -206,6 +216,11 @@
                     </a>
                 </li>
                 <li class="">
+                    <a href="/wsapihelp">
+                        <span class="menu-text">API说明文档</span>
+                    </a>
+                </li>
+                <li class="">
                     <a href="/cronhelp">
                         <span class="menu-text">Cron表达式说明</span>
                     </a>
@@ -215,7 +230,7 @@
 
 	<li class="active">
          %end
-            <a href="http://blog.lnmos.com" target="_bank" class="menu-dropdown">
+            <a href="https://github.com/fxtxkktv" target="_bank" class="menu-dropdown">
                 <i class="menu-icon fa fa-address-book-o"></i>
                 <span class="menu-text"> AboutMe </span>
                 <i class="menu-expand"></i>

@@ -195,7 +195,8 @@ $(function(){
             var style_run = '&nbsp;<a class="btn-sm btn-info" disabled>';
         }
         //定义webssh样式，只有管理员或自己编辑的任务才有权删除
-        if({{session.get('access',None)}} == '1' || "{{session.get('name',None)}}" == rowobj['userid']){
+        console.log("{{session.get('WebSSHurl',None)}}")
+        if("{{session.get('WebSSHurl',None)}}" != "1" && ({{session.get('access',None)}} == '1' || "{{session.get('name',None)}}" == rowobj['userid'])){
             var style_conn = '&nbsp;<a target="_bank" href="{{session.get('WebSSHurl',None)}}/ssh/host/'+rowobj['hostaddr']+'?port='+rowobj['sshport']+'" class="btn-sm btn-danger" onClick="return confirm(&quot;确定连接吗?&quot;)"> ';
         }else{
             var style_conn = '&nbsp;<a class="btn-sm btn-danger" disabled>';

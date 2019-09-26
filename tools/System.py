@@ -1,270 +1,18 @@
 #coding=utf-8
-import os,sys,json,re,time,datetime,logging,zipfile,socket,platform
+import os,sys,base64,json,re,time,datetime,logging,zipfile,socket,platform
 from bottle import request,route
 from bottle import template,redirect,static_file
 
 from MySQL import writeDb,readDb,readDb2
 from Login import checkLogin,checkAccess
 
-from Functions import AppServer,LoginCls,cmdhandle,netModule,iScheduler,SaltCLS
+from Functions import AppServer,LoginCls,cmdhandle,netModule,iScheduler,SaltCLS,is_chinese
 import Global as gl
 
 keys = AppServer().getConfValue('keys','passkey')
 
 cmds=cmdhandle()
 netmod=netModule()
-
-@route('/routeconf')
-@checkAccess
-def routeconf():
-    s = request.environ.get('beaker.session')
-    return template('routeconf',session=s,msg={})
-
-@route('/staticroute')
-@checkAccess
-def routeconf():
-    s = request.environ.get('beaker.session')
-    return template('staticroute',msg={},session=s)
-
-@route('/advroute')
-@checkAccess
-def routeconf():
-    s = request.environ.get('beaker.session')
-    return template('advroute',msg={},session=s)
-
-@route('/showadvroute')
-@checkAccess
-def routeconf():
-    s = request.environ.get('beaker.session')
-    result = cmds.getdictrst('ip rule')
-    return template('showlog',session=s,info=result)
-
-@route('/api/getrouteinfo',method=['GET', 'POST'])
-@checkAccess
-def getrouteinfo():
-    netmod.Initrouteinfo()
-    sql = """ SELECT I.id, I.dest, I.netmask, I.gateway, I.iface FROM sysroute as I where fromtype=0 order by id """
-    item_list = readDb(sql,)
-    return json.dumps(item_list)
-
-@route('/api/getrouteinfo2',method=['GET', 'POST'])
-@checkAccess
-def getrouteinfo():
-    sql = """ SELECT I.id, I.dest, I.netmask, I.gateway, I.iface FROM sysroute as I where fromtype=1 """
-    item_list = readDb(sql,)
-    return json.dumps(item_list)
-
-@route('/api/getrouteinfo3',method=['GET', 'POST'])
-@checkAccess
-def getrouteinfo():
-    sql = """ SELECT id, rulename, left(srcaddr,100) as srcaddr, left(destaddr,100) as destaddr, pronum, iface FROM sysrouteadv order by pronum asc"""
-    item_list = readDb(sql,)
-    return json.dumps(item_list)
-
-@route('/addroute')
-@checkAccess
-def addroute():
-    s = request.environ.get('beaker.session')
-    sql = " SELECT ifacename FROM netiface where status='UP' "
-    ifacelist_result = readDb(sql,)
-    return template('addrouteconf',session=s,info={},ifacelist_result=ifacelist_result)
-
-@route('/addroute',method="POST")
-@checkAccess
-def do_addroute():
-    s = request.environ.get('beaker.session')
-    rttype = request.forms.get("rttype")
-    destaddr = request.forms.get("ipaddr")
-    netmask = request.forms.get("netmask")
-    gateway = request.forms.get("gateway")
-    gwiface = request.forms.get("gwiface")
-    # 格式判断
-    if netmod.checkip(destaddr) == False or netmod.checkmask(netmask) == False or netmod.checkip(gateway) == False :
-       msg = {'color':'red','message':u'地址不合法,添加失败'}
-       return(template('staticroute',msg=msg,session=s))
-    # 系统判断
-    if gwiface == 'auto':
-       resultA = cmds.getdictrst('route add -net %s netmask %s gw %s' % (destaddr,netmask,gateway))
-    else :
-       resultA = cmds.getdictrst('route add -net %s netmask %s gw %s dev %s' % (destaddr,netmask,gateway,gwiface))
-    if resultA.get('status') != 0 :
-       msg = {'color':'red','message':u'目标不可达或其他错误，添加失败'}
-       return(template('staticroute',msg=msg,session=s))
-    sql = "INSERT INTO sysroute(type,dest,netmask,gateway,iface,fromtype) VALUES(%s,%s,%s,%s,%s,%s)"
-    data = ('net',destaddr,netmask,gateway,gwiface,1)
-    result = writeDb(sql,data)
-    if result == True:
-       writeROUTEconf(action='uptconf')
-       writeUTMconf(action='uptconf')
-       msg = {'color':'green','message':u'添加成功'}
-    else:
-       msg = {'color':'red','message':u'添加失败'}
-       return(template('staticroute',msg=msg,session=s))
-
-@route('/addadvroute')
-@checkAccess
-def addroute():
-    s = request.environ.get('beaker.session')
-    netmod.InitNIinfo()
-    sql = " SELECT ifacename FROM netiface where status='UP' UNION select attr as ifacename FROM sysattr where status='1' and servattr='vpnrelay'"
-    ifacelist_result = readDb(sql,)
-    return template('addadvroute',session=s,info={},ifacelist_result=ifacelist_result)
-
-@route('/addadvroute',method="POST")
-@checkAccess
-def do_addroute():
-    s = request.environ.get('beaker.session')
-    rulename = request.forms.get("rulename")
-    srcaddr = request.forms.get("srcaddr").replace('\r\n','\n').strip()
-    destaddr = request.forms.get("destaddr").replace('\r\n','\n').strip()
-    pronum = request.forms.get("pronum")
-    outdev = request.forms.get("ifacename")
-    alladdr=srcaddr.split('\n')+destaddr.split('\n')
-    #提交判断
-    if outdev == '' or rulename == '':
-       msg = {'color':'red','message':u'描述或出口未填写，添加失败'}
-       return(template('advroute',msg=msg,session=s))
-    if int(pronum) <100 or int(pronum) >32765 :
-       msg = {'color':'red','message':u'优先级值填写错误，添加失败'}
-       return(template('advroute',msg=msg,session=s))
-    for ipmask in alladdr :
-        if netmod.checkipmask(ipmask) == False and ipmask != '':
-           msg = {'color':'red','message':u'地址格式错误，添加失败'}
-           return(template('advroute',msg=msg,session=s))
-    if outdev == "vpnrelay":
-       outdev = 'tun1000'
-    cmdDict=cmds.getdictrst('ip rule add prio %s fwmark 1000 dev %s' % (pronum,outdev))
-    if cmdDict.get('status') == 0:
-       sql = """ insert into sysrouteadv(rulename,srcaddr,destaddr,pronum,iface) VALUES(%s,%s,%s,%s,%s) """
-       data = (rulename,srcaddr,destaddr,int(pronum),outdev)
-       result = writeDb(sql,data)
-       if result :
-          writeROUTEconf(action='uptconf')
-          writeUTMconf(action='uptconf')
-          msg = {'color':'green','message':u'添加成功'}
-       else :
-          msg = {'color':'red','message':u'添加失败'}
-    else:
-       msg = {'color':'red','message':u'系统规则生成异常，添加失败'}
-    return(template('advroute',msg=msg,session=s))
-
-@route('/editadvroute/<id>')
-@checkAccess
-def editadvroute(id):
-    s = request.environ.get('beaker.session')
-    sql = " SELECT ifacename FROM netiface where status='UP' UNION select attr as ifacename FROM sysattr where status='1' and servattr='vpnrelay'"
-    ifacelist_result = readDb(sql,)
-    sql2 = """ SELECT rulename,srcaddr,destaddr,pronum,iface FROM sysrouteadv WHERE id=%s """
-    result = readDb(sql2,(id,))
-    if result[0].get('iface') == "tun1000":
-       result[0].update(iface="vpnrelay")
-    return template('addadvroute',session=s,info=result[0],ifacelist_result=ifacelist_result)
-
-@route('/editadvroute/<id>',method="POST")
-@checkAccess
-def do_editadvroute(id):
-    s = request.environ.get('beaker.session')
-    rulename = request.forms.get("rulename")
-    srcaddr = request.forms.get("srcaddr").replace('\r\n','\n').strip()
-    destaddr = request.forms.get("destaddr").replace('\r\n','\n').strip()
-    pronum = request.forms.get("pronum")
-    outdev = request.forms.get("ifacename")
-    alladdr=srcaddr.split('\n')+destaddr.split('\n')
-    #提交判断
-    if outdev == '' or rulename == '':
-        msg = {'color':'red','message':u'描述或出口未填写，添加失败'}
-        return(template('advroute',msg=msg,session=s))
-    if int(pronum) <0 or int(pronum) >32765 :
-        msg = {'color':'red','message':u'优先级值填写错误，添加失败'}
-        return(template('advroute',msg=msg,session=s))
-    for ipmask in alladdr :
-        if netmod.checkipmask(ipmask) == False and ipmask != '':
-           msg = {'color':'red','message':u'地址格式错误(%s)，添加失败' % ipmask}
-           return(template('advroute',msg=msg,session=s))
-    if outdev == "vpnrelay":
-       outdev = 'tun1000'
-    cmdDict=cmds.getdictrst('ip rule add prio %s fwmark 1000%s dev %s' % (pronum,id,outdev))
-    if cmdDict.get('status') == 0:
-       sql = """ UPDATE sysrouteadv SET rulename=%s,srcaddr=%s,destaddr=%s,pronum=%s,iface=%s WHERE id=%s """
-       data = (rulename,srcaddr,destaddr,int(pronum),outdev,id)
-       result = writeDb(sql,data)
-       if result :
-          writeROUTEconf(action='uptconf')
-          writeUTMconf(action='uptconf')
-          msg = {'color':'green','message':u'更新成功'}
-       else :
-          msg = {'color':'red','message':u'更新失败'}
-    else:
-       msg = {'color':'red','message':u'系统规则生成异常，添加失败'}
-    return(template('advroute',msg=msg,session=s))
-
-@route('/delroute/<stype>/<id>')
-@checkAccess
-def deliface(stype,id):
-    s = request.environ.get('beaker.session')
-    if stype == 'sys' or stype == 'static' :
-       sqlquery = " select dest,netmask,gateway FROM sysroute WHERE id=%s "
-       sql = " DELETE FROM sysroute WHERE id=%s "
-    else:
-       sqlquery = " select srcaddr,destaddr,pronum,iface as outdev FROM sysrouteadv WHERE id=%s "
-       sql = " DELETE FROM sysrouteadv WHERE id=%s "
-    resultA = readDb(sqlquery,(id,))
-    # 判断删除入口并返回到指定界面
-    if stype == 'sys':
-       tpl = 'routeconf'
-    elif stype == 'static':
-       tpl = 'staticroute'
-    elif stype == 'adv':
-       tpl = 'advroute'
-    # 判断提交的指令
-    result = writeDb(sql,(id,))
-    if result == True:
-       if stype == 'adv':
-          try:
-             if resultA[0].get('srcaddr') == '' and resultA[0].get('destaddr') != '':
-                cmds.getdictrst('ip rule del prio %s to %s' % (resultA[0].get('pronum'),resultA[0].get('destaddr')))
-             elif resultA[0].get('destaddr') == '' and resultA[0].get('srcaddr') != '':
-                cmds.getdictrst('ip rule del prio %s from %s dev %s' % (resultA[0].get('pronum'),resultA[0].get('srcaddr')))
-             elif resultA[0].get('destaddr') == '' and resultA[0].get('srcaddr') == '':
-                cmds.getdictrst('ip rule del prio %s dev %s' % (resultA[0].get('pronum'),resultA[0].get('outdev')))
-             else:
-                cmds.getdictrst('ip rule del prio %s from %s to %s' % (resultA[0].get('pronum'),resultA[0].get('srcaddr'),resultA[0].get('destaddr')))
-             msg = {'color':'green','message':u'删除成功'}
-             return template(tpl,session=s,msg=msg)
-          except:
-                msg = {'color':'green','message':u'删除成功'}
-                return template(tpl,session=s,msg=msg)
-       else:
-          cmds.getdictrst('route del -net %s netmask %s gw %s' % (resultA[0].get('dest'),resultA[0].get('netmask'),resultA[0].get('gateway')))
-          writeROUTEconf(action='uptconf')
-          writeUTMconf(action='uptconf')
-          msg = {'color':'green','message':u'删除成功'}
-          return template(tpl,session=s,msg=msg)
-    else:
-       msg = {'color':'red','message':u'删除失败'}
-       return template(tpl,session=s,msg=msg)
-
-@route('/servtools')
-@checkAccess
-def servtools():
-    """服务工具"""
-    s = request.environ.get('beaker.session')
-    return template('servtools',session=s,info={})
-
-@route('/servtools',method="POST")
-@checkAccess
-def do_servtools():
-    s = request.environ.get('beaker.session')
-    toolsname = request.forms.get("toolsname")
-    servname = request.forms.get("servname")
-    result = cmds.syscmds(toolsname,servname)
-    info = {}
-    info['toolsname'] = toolsname
-    info['servname'] = servname
-    info['result'] = result
-    if result :
-       msg = {'color':'green','message':u'查询完成'}
-    return(template('servtools',msg=msg,session=s,info=info))
 
 @route('/resconfig')
 @checkAccess
@@ -375,6 +123,15 @@ def showservlog():
     """显示日志项"""
     s = request.environ.get('beaker.session')
     result = cmds.getdictrst('tail -300 %s/logs/myapp_run.log' % gl.get_value('wkdir'))
+    return template('showlog',session=s,msg={},info=result)
+
+
+@route('/showtasklog')
+@checkAccess
+def showservlog():
+    """显示日志项"""
+    s = request.environ.get('beaker.session')
+    result = cmds.getdictrst('tail -300 %s/logs/myapp_task.log' % gl.get_value('wkdir'))
     return template('showlog',session=s,msg={},info=result)
 
 @route('/download/<vdir>/<filename:re:.*\.zip|.*\.bkt>')
@@ -1036,19 +793,24 @@ def addsoftware():
     supplier = request.forms.get('supplier')
     comment = request.forms.get('comment')
     fname = request.forms.get('fname')
-    softfile = request.forms.get('fdesc')
+    filedesc = ''
     if not (softnumber and softversion and softname and softdate and supplier):
        return '-2'
-    sql = """
-            INSERT INTO softwaremgr (softnumber,softname,softversion,softdate,supplier,filename,softfile,comment) VALUE (%s,%s,%s,%s,%s,%s,%s,%s)
-        """
-    data = (softnumber,softname,softversion,softdate,supplier,fname,softfile,comment)
+    if fname:
+       os.system('rm -f /tmp/softfile')
+       #临时存储文件方式后blob读出再写入数据库
+       softfile = request.POST.get('fdesc')
+       softfile.save('/tmp/softfile', overwrite=True)
+       fd=open('/tmp/softfile','rb')
+       filedesc=fd.read()
+       fd.close()
+       os.system('rm -f /tmp/softfile')
+    sql = """ INSERT INTO softwaremgr (softnumber,softname,softversion,softdate,supplier,filename,softfile,comment) VALUE (%s,%s,%s,%s,%s,%s,%s,%s) """
+    data = (softnumber,softname,softversion,softdate,supplier,fname,filedesc,comment)
     result = writeDb(sql,data)
     if result:
-       #wrtlog('User','新增成功:%s' % username,s['username'],s.get('clientip'))
        return '0'
     else:
-       #wrtlog('User','新增失败:%s' % username,s['username'],s.get('clientip'))
        return '-1'
 
 @route('/changesoftware/<id>',method="POST")
@@ -1062,33 +824,41 @@ def changesoftware(id):
     supplier = request.forms.get('supplier')
     comment = request.forms.get('comment')
     fname = request.forms.get('fname')
-    softfile = request.forms.get('fdesc')
     if not (softnumber and softversion and softname and softdate and supplier):
        return '-2'
     if fname :
+       os.system('rm -f /tmp/softfile')
+       softfile = request.POST.get('fdesc')
+       softfile.save('/tmp/softfile', overwrite=True)
+       fd=open('/tmp/softfile','rb')
+       filedesc=fd.read()
+       fd.close()
+       os.system('rm -f /tmp/softfile')
        sql = """ UPDATE softwaremgr set softnumber=%s,softname=%s,softversion=%s,softdate=%s,supplier=%s,filename=%s,softfile=%s,comment=%s where id=%s """
-       data = (softnumber,softname,softversion,softdate,supplier,fname,softfile,comment,id)
+       data = (softnumber,softname,softversion,softdate,supplier,fname,filedesc,comment,id)
     else:
        sql = """ UPDATE softwaremgr set softnumber=%s,softname=%s,softversion=%s,softdate=%s,supplier=%s,comment=%s where id=%s """
        data = (softnumber,softname,softversion,softdate,supplier,comment,id)
     result = writeDb(sql,data)
     if result:
-       #wrtlog('User','新增成功:%s' % username,s['username'],s.get('clientip'))
        return '0'
     else:
-       #wrtlog('User','新增失败:%s' % username,s['username'],s.get('clientip'))
        return '-1'
 
-@route('/downsoftfile/<id>')
-def downsoftfile(id):
-    sql=""" SELECT filename,softfile from softwaremgr where id=%s """
+@route('/downfile/<stype>/<id>')
+def downsoftfile(stype,id):
+    if stype == "software": 
+       sql=""" SELECT filename,softfile from softwaremgr where id=%s """
+    elif stype == "ftrecords":
+       sql=""" SELECT fname as filename,ftfile as softfile from faultrecords where ftrank=%s """
     result = readDb(sql,(id,))
+    os.system('rm -f /tmp/downfile')
     filename = result[0].get('filename')
-    f = open("/tmp/%s" % filename, "wb")
+    f = open("/tmp/downfile", "wb")
     f.write(result[0].get('softfile'))
     f.close()
     download_path = "/tmp"
-    return static_file(filename, root=download_path, download=filename)
+    return static_file('downfile', root=download_path, download=filename)
 
 @route('/delsoftware/<id>')
 @checkAccess
@@ -1105,16 +875,111 @@ def delhdware(id):
        msg={'color':'red','message':u'删除失败'}
        return template('softmgrconf',session=s,msg=msg)
 
+@route('/faultrecords',method=["GET","POST"])
+@checkAccess
+def itroomconf():
+    s = request.environ.get('beaker.session')
+    sqlA=""" select id,hdname from hardwaremgr """
+    resultA=readDb(sqlA,)
+    sqlB=""" select id,hostname from hostmgr """
+    resultB=readDb(sqlB,)
+    return template('faultrecords',session=s,msg={},hardlist=resultA,hostlist=resultB)
+
+@route('/addfaultrecords',method="POST")
+@checkAccess
+def addfaultrecords():
+    s = request.environ.get('beaker.session')
+    fttype = request.forms.get('fttype')
+    ftlevel = request.forms.get('ftlevel')
+    startdate = request.forms.get('startdate')
+    stopdate = request.forms.get('stopdate')
+    ftobject = request.forms.get('ftobject')
+    comment = request.forms.get('comment')
+    fname = request.forms.get('fname')
+    filedesc = ''
+    if not (startdate and comment and fttype and ftlevel):
+       return '-2'
+    ftrank = "FT-%s-%s" % (fttype,time.strftime('%Y%m%d%H%M%S', time.localtime(time.time())))
+    if fname:
+       os.system('rm -f /tmp/ftfile')
+       #临时存储文件方式后blob读出再写入数据库
+       softfile = request.POST.get('fdesc')
+       softfile.save('/tmp/ftfile', overwrite=True)
+       fd=open('/tmp/ftfile','rb')
+       filedesc=fd.read()
+       fd.close()
+       os.system('rm -f /tmp/ftfile')
+       sql = """ INSERT INTO faultrecords (ftrank,fttype,ftlevel,startdate,stopdate,ftobject,fname,ftfile,comment) VALUE (%s,%s,%s,%s,%s,%s,%s,%s,%s) """
+       data = (ftrank,fttype,ftlevel,startdate,stopdate,ftobject,fname,filedesc,comment)
+    else:
+       sql = """ INSERT INTO faultrecords (ftrank,fttype,ftlevel,startdate,stopdate,ftobject,comment) VALUE (%s,%s,%s,%s,%s,%s,%s) """
+       data = (ftrank,fttype,ftlevel,startdate,stopdate,ftobject,comment)
+    result = writeDb(sql,data)
+    if result:
+       return '0'
+    else:
+       return '-1'
+
+@route('/changefaultrecords/<ftrank>',method="POST")
+@checkAccess
+def changefaultrecords(ftrank):
+    s = request.environ.get('beaker.session')
+    fttype = request.forms.get('fttype')
+    ftlevel = request.forms.get('ftlevel')
+    startdate = request.forms.get('startdate')
+    stopdate = request.forms.get('stopdate')
+    ftobject = request.forms.get('ftobject')
+    comment = request.forms.get('comment')
+    fname = request.forms.get('fname')
+    filedesc = ''
+    if not (startdate and comment and fttype and ftlevel):
+       return '-2'
+    if fname:
+       os.system('rm -f /tmp/ftfile')
+       #临时存储文件方式后blob读出再写入数据库
+       softfile = request.POST.get('fdesc')
+       softfile.save('/tmp/ftfile', overwrite=True)
+       fd=open('/tmp/ftfile','rb')
+       filedesc=fd.read()
+       fd.close()
+       os.system('rm -f /tmp/ftfile')
+       sql = """ UPDATE faultrecords SET fttype=%s,ftlevel=%s,startdate=%s,stopdate=%s,ftobject=%s,fname=%s,ftfile=%s,comment=%s where ftrank=%s """
+       data = (fttype,ftlevel,startdate,stopdate,ftobject,fname,filedesc,comment,ftrank)
+    else:
+       sql = """ UPDATE faultrecords SET fttype=%s,ftlevel=%s,startdate=%s,stopdate=%s,ftobject=%s,comment=%s where ftrank=%s """
+       data = (fttype,ftlevel,startdate,stopdate,ftobject,comment,ftrank)
+    result = writeDb(sql,data)
+    if result:
+       return '0'
+    else:
+       return '-1'
+
+@route('/delftrecords/<ftrank>')
+@checkAccess
+def delhdware(ftrank):
+    s = request.environ.get('beaker.session')
+    sqlA=""" select id,hdname from hardwaremgr """
+    resultA=readDb(sqlA,)
+    sqlB=""" select id,hostname from hostmgr """
+    resultB=readDb(sqlB,)
+    sql = "delete from faultrecords where ftrank in (%s) "
+    result = writeDb(sql,(ftrank,))
+    if result:
+       msg={'color':'green','message':u'删除成功'}
+    else:
+       msg={'color':'red','message':u'删除失败'}
+    return template('faultrecords',session=s,msg=msg,hardlist=resultA,hostlist=resultB)
+
+
 @route('/tasklist')
 @checkAccess
 def taskconf():
     s = request.environ.get('beaker.session')
     sql = """ select D.id,FROM_UNIXTIME(U.next_run_time) as ntime,D.taskname from apscheduler_jobs as U LEFT OUTER JOIN taskconf as D on position(D.id in U.id) order by ntime limit 9"""
     njobdata = readDb(sql,)
-    sql2 = """ SELECT U.id,U.jobtime,U.runstatus,D.taskname FROM apscheduler_logs as U LEFT OUTER JOIN taskconf as D on U.jobid=D.id order by id DESC limit 21 """
+    sql2 = """ SELECT U.jid,D.taskname,U.jobtime,U.run_status FROM apscheduler_logs as U LEFT OUTER JOIN taskconf as D on U.jobid=D.id order by jobtime DESC limit 21 """
     sjobdata = readDb(sql2,)
-    #暂排除runstatus 返回None  数值为20的情况，原因待查
-    sql3 = """ SELECT U.id,U.jobtime,U.runstatus,D.taskname FROM apscheduler_logs as U LEFT OUTER JOIN taskconf as D on U.jobid=D.id WHERE runstatus != '0' AND runstatus != '20' order by id DESC limit 8 """
+    sql3 = """ SELECT U.jid,D.taskname,U.jobtime,U.run_status FROM apscheduler_logs as U LEFT OUTER JOIN taskconf as D on U.jobid=D.id where U.run_status != '0'  order by jobtime DESC limit 8 """
     errjobdata = readDb(sql3,)
     return template('tasklist',session=s,njobdata=njobdata,sjobdata=sjobdata,errjobdata=errjobdata)
 
@@ -1232,7 +1097,13 @@ def gettaskinfo(id):
 @checkAccess
 def do_sshconf():
     s = request.environ.get('beaker.session')
-    s['WebSSHurl'] = AppServer().getConfValue('WSSHAPI','WebSSHurl')
+    # 判断配置文件WEBURL中url是否合规,合规才提交到界面上显示SSH连接
+    pattern = re.compile(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
+    result = re.match(pattern,AppServer().getConfValue('WSSHAPI','WebSSHurl'))
+    if str(result) == 'None':
+       s['WebSSHurl']="1"
+    else:
+       s['WebSSHurl'] = AppServer().getConfValue('WSSHAPI','WebSSHurl')
     return template('sshconf',session=s,msg={},info={})
 
 @route('/addsshconn',method='POST')
@@ -1379,21 +1250,29 @@ def gettasklogs(id):
 @route('/api/gettasklogs/<id>',method=['GET', 'POST'])
 @checkAccess
 def getsshinfo(id):
-    sql = """ SELECT id,jobid,jobtime,apimode,hostlist,runstatus FROM apscheduler_logs where jobid=%s order by jobtime desc limit 500"""
+    sql = """ SELECT U.id, U.jobid, U.jobtime, U.apimode, U.hostlist, U.run_status as success, U.jid FROM apscheduler_logs as U WHERE U.jobid=%s order by jobtime desc limit 500"""
     logs = readDb(sql,(id,))
+    if logs[0].get('id') is None:
+       logs=()
     return json.dumps(logs,cls=DateEncoder)
 
 @route('/taskrecord/<id>')
 @checkAccess
 def gettaskrecord(id):
     s = request.environ.get('beaker.session')
-    sql = """ SELECT jobid,jobtime,apimode,hostlist,runstatus,runFuncAPI,jobresult FROM apscheduler_logs where id=%s """
+    sql = """SELECT U.jobid, U.jobtime, U.apimode, U.hostlist, U.run_status as success, U.jid, U.full_ret, U.runFuncAPI  FROM apscheduler_logs as U WHERE U.jid=%s """
     info = readDb(sql,(id,))
     infos = {}
+    infos['result'] = ''
+    if info[0].get('full_ret') == "" :
+       infos['result'] = '结果获取异常，可能指令超时、主机异常、指令未执行完成，请联系管理员进一步确认!'
+    else:
+      for i in info[0].get('full_ret').split('_sep_') :
+          if i != "":
+             infos['result'] += ' 操作节点:\t'+str(json.loads(i).get('id'))+'\t返回代码:\t'+str(json.loads(i).get('retcode'))+'\n----------------------STDOUT---------------------\n'+str(json.loads(i).get('return'))+'\n------------------------------------------------\n\n'
     infos['jobid'] = info[0].get('jobid')
-    infos['comment'] = '日志ID:%s\n执行时间:%s\n操作模式:%s;操作主机:%s;运行状态:%s' % (id,info[0].get('jobtime'),info[0].get('apimode'),info[0].get('hostlist'),info[0].get('runstatus'))
+    infos['comment'] = '日志ID:%s\n执行时间:%s\n操作模式:%s;操作主机:%s;运行状态:%s' % (id,info[0].get('jobtime'),info[0].get('apimode'),info[0].get('hostlist'),info[0].get('success'))
     infos['runcmd'] = info[0].get('runFuncAPI')
-    infos['result'] = info[0].get('jobresult')
     return template('taskrecord',session=s,msg={},info=infos)
 
 @route('/api/getsshinfo',method=['GET', 'POST'])
@@ -1419,11 +1298,9 @@ def do_addtaskgrp():
     grpdesc = request.forms.get("grpdesc")
     grptasks = request.forms.getlist("grptasks[]")
     grptasks = ",".join(grptasks)
-    sql = """
-            INSERT INTO
-               taskgrpmgr(grpname,grpdesc,grptasks)
-            VALUES(%s,%s,%s)
-        """
+    sql = """ INSERT INTO taskgrpmgr(grpname,grpdesc,grptasks) VALUES(%s,%s,%s) """
+    if not (grpname and grptasks):
+       return '-2'
     data = (grpname,grpdesc,str(grptasks))
     result = writeDb(sql,data)
     if result:
@@ -1441,6 +1318,8 @@ def do_changetaskgrp(id):
     grpdesc = request.forms.get("grpdesc")
     grptasks = request.forms.getlist("grptasks[]")
     grptasks = ",".join(grptasks)
+    if not (grpname and grptasks):
+       return '-2'
     sql = """ UPDATE taskgrpmgr SET grpname=%s,grpdesc=%s,grptasks=%s WHERE id=%s """
     data = (grpname,grpdesc,str(grptasks),id)
     result = writeDb(sql,data)
@@ -1477,11 +1356,155 @@ def gettaskgrpinfo():
     taskgrplist = readDb(sql,)
     return json.dumps(taskgrplist,cls=DateEncoder)
 
+@route('/api/getftinfo',method=['GET', 'POST'])
+@checkAccess
+def getftinfo():
+    sql = """ SELECT U.ftrank,U.fttype,U.ftlevel,U.startdate,U.stopdate,U.ftobject,
+          CASE U.fttype WHEN "Hardware" then GROUP_CONCAT(F.hdname)
+          WHEN "System" then GROUP_CONCAT(D.hostname)
+          ELSE U.ftobject END
+          as ftobjectvalue ,
+          U.comment,U.fname from faultrecords as U LEFT OUTER JOIN hostmgr as D on position(D.id in U.ftobject)
+          LEFT OUTER JOIN hardwaremgr as F on position(F.id in U.ftobject) GROUP BY U.ftrank desc"""
+    result = readDb(sql,)
+    return json.dumps(result,cls=DateEncoder)
+
 @route('/apilists')
 @checkAccess
 def taskconf():
     s = request.environ.get('beaker.session')
-    return template('apilists',session=s,msg={})
+    sql3 = """ SELECT id,hostaddr,concat(hostaddr,' | ',sshport,' | ',sshuser ) as sshinfo from sshmgr WHERE status='1' """
+    sshconnlist = readDb(sql3,)
+    return template('apilists',session=s,msg={},sshconnlist=sshconnlist)
+
+@route('/addapis', method='POST')
+@checkAccess
+def addapis():
+    s = request.environ.get('beaker.session')
+    api_name = request.forms.get("api_name")
+    api_version = request.forms.get("api_version")
+    api_desc = request.forms.get("api_desc")
+    api_options = request.forms.get("api_options")
+    api_safe = request.forms.get("api_safe")
+    api_type = request.forms.get("api_type")
+    if api_type == 1:
+       api_host = '127.0.0.1'
+    else: 
+       api_host = request.forms.getlist("api_host")
+    api_script_path = request.forms.get('api_script_path')
+    if not (api_name and api_version and api_options and api_type):
+       return '-2'
+    if api_safe == "":
+       api_safe="0.0.0.0/0"
+    for ips in api_safe.split(','):
+        if netmod.checkipmask(ips) == False:
+           return '-2'
+    sql = """ INSERT INTO apimgr (api_name,api_desc,api_version,api_options,api_script_path,api_safe,api_type,api_host) VALUE (%s,%s,%s,%s,%s,%s,%s,%s) """
+    data = (api_name,api_desc,api_version,api_options,api_script_path,api_safe,api_type,api_host)
+    result = writeDb(sql,data)
+    if result:
+       return '0'
+    else:
+       return '-1'
+
+@route('/changeapis/<id>', method='POST')
+@checkAccess
+def changeapis(id):
+    s = request.environ.get('beaker.session')
+    api_name = request.forms.get("api_name")
+    api_version = request.forms.get("api_version")
+    api_desc = request.forms.get("api_desc")
+    api_options = request.forms.get("api_options")
+    api_safe = request.forms.get("api_safe")
+    api_type = request.forms.get("api_type")
+    if api_type == '1':
+       api_host = '127.0.0.1'
+    else: 
+       api_host = request.forms.getlist("api_host")
+    api_script_path = request.forms.get('api_script_path')
+    if not (api_name and api_version and api_options and api_type):
+       return '-2'
+    if api_safe == "":
+       api_safe="0.0.0.0/0"
+    for ips in api_safe.split(','):
+        if netmod.checkipmask(ips) == False:
+           return '-2'
+    sql = """ update apimgr set api_name=%s,api_desc=%s,api_version=%s,api_options=%s,api_safe=%s,api_script_path=%s,api_type=%s,api_host=%s where id=%s """
+    data = (api_name,api_desc,api_version,api_options,api_safe,api_script_path,api_type,api_host,id)
+    result = writeDb(sql,data)
+    if result:
+       return '0'
+    else:
+       return '-1'
+
+@route('/api/getapilist',method=['GET', 'POST'])
+@checkAccess
+def getapilist():
+    sql = """ SELECT U.id,U.api_name,U.api_desc,U.api_version,U.api_options,U.api_script_path,U.api_safe,U.api_type,U.api_host,D.hostaddr from apimgr as U LEFT OUTER JOIN sshmgr as D on U.api_host=D.id order by U.id """
+    result = readDb(sql,)
+    return json.dumps(result)
+
+@route('/wsapi/<urlmap>')
+def wsapi(urlmap):
+    import urlparse
+    s = request.environ.get('beaker.session')
+    msg={'return':255,'message':'no found appid info...'}
+    odict=urlparse.parse_qs(urlparse.urlparse('wsapi?%s' % urlmap).query)
+    try:
+       appid=int(odict['appid'][0])
+    except:
+       appid="-1"
+    sql = """ select U.api_options,U.api_safe,U.api_script_path,U.api_type,D.hostaddr from apimgr as U LEFT OUTER JOIN sshmgr as D on D.id=U.api_host where U.id=%s """
+    result=readDb(sql,(appid,))
+    if result is False or len(result) == 0:
+       msg={'return':255,'message':'appid error...'}
+    else:
+       safestatus=False
+       safelist=result[0].get('api_safe')    
+       for ipv in safelist.split(','):
+        if netmod.checkinnet(request.environ.get('REMOTE_ADDR'),ipv) == True:
+           safestatus=True
+           break
+       if safestatus == True: 
+          FormatOpts=''
+          for k,v in odict.items():
+            if k in result[0].get('api_options').split(','):
+              if is_chinese(v[0]) == True:
+                 newv=base64.b64encode(v[0])
+              else:
+                 newv=v[0]
+              FormatOpts += '%s_^_%s_^_^_' % (k,newv)
+          #print FormatOpts
+          if FormatOpts == "":
+             msg={'return':255,'message':u'no found options (num > 1)'}
+             return template('wsapp.tpl',session=s,msg=msg)
+          if result[0].get('api_type') == 2:
+             #print result[0].get('api_script_path'),FormatOpts
+             x,stdout = cmds.gettuplerst('salt-ssh "%s" -r "%s %s" -L' % (result[0].get('hostaddr'),result[0].get('api_script_path'),FormatOpts))
+          else:
+             x,stdout = cmds.gettuplerst('export LANG="en_US.UTF-8";timeout 60 %s %s' % (result[0].get('api_script_path'),FormatOpts))
+          if x == 0:
+             msg={'return':x,'message':u'%s' % stdout}
+          else :
+             msg={'return':x,'message':u'%s' % stdout}
+       else:
+         msg={'return':255,'message':'Access REJECT: [IPADDRESS: %s]' % request.environ.get('REMOTE_ADDR')}
+    #print json.dumps(msg,ensure_ascii=False) #返回内容含中文处理
+    return template('wsapp.tpl',session=s,msg=msg)
+
+@route('/delapirecords/<id>')
+@checkAccess
+def delapirecords(id):
+    s = request.environ.get('beaker.session')
+    sqlx = "delete from apimgr where id=%s"
+    resultx = writeDb(sqlx,(id,))
+    sql3 = """ SELECT id,hostaddr,concat(hostaddr,' | ',sshport,' | ',sshuser ) as sshinfo from sshmgr WHERE status='1' """
+    sshconnlist = readDb(sql3,)
+    if resultx:
+       msg={'color':'green','message':u'删除成功'}
+    else:
+       msg={'color':'red','message':u'删除失败'}
+    return template('apilists',session=s,msg=msg,sshconnlist=sshconnlist)
 
 @route('/downloadtasklist')
 @checkAccess

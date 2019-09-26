@@ -25,10 +25,12 @@ netmod=netModule()
 API=getAPIData()
 
 if __name__ == '__main__' :
+   #获取用户ID信息
    if sys.argv[1] == 'API' and sys.argv[2] == 'getUserLineID':
       print API.getUserLineID(sys.argv[3])
-   elif sys.argv[1] == 'API' and sys.argv[2] == 'wrtvpnlogin':
-      print wrtlog(sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6])
+   #重置管理员密码接口
+   elif sys.argv[1] == 'API' and sys.argv[2] == 'resetAdminPass':
+      print API.resetAdminPass(sys.argv[3])
    elif sys.argv[1] == 'API' and sys.argv[2] == 'getgw':
       print netmod.getIfGW(sys.argv[3])
    elif sys.argv[1] == 'API' and sys.argv[2] == 'getniaddr':

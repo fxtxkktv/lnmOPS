@@ -218,10 +218,17 @@ def policyconf():
     s = request.environ.get('beaker.session')
     return template('support',session=s,msg={})
 
+@route('/wsapihelp')
+@checkLogin
+def policyconf():
+    """API说明文档"""
+    s = request.environ.get('beaker.session')
+    return template('wsapihelp',session=s,msg={})
+
 @route('/cronhelp')
 @checkLogin
 def policyconf():
-    """问题反馈页"""
+    """cron表达式文档"""
     s = request.environ.get('beaker.session')
     return template('cronhelp',session=s,msg={})
 

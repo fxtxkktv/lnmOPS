@@ -5,7 +5,7 @@
             <div class="widget">
                 <div class="widget-header bordered-bottom bordered-themesecondary">
                     <i class="widget-icon fa fa-tags themesecondary"></i>
-                    <span class="widget-caption themesecondary">查看系统反馈</span>
+                    <span class="widget-caption themesecondary">系统日志</span>
                     <div class="widget-buttons">
                         <a href="#" data-toggle="maximize">
                             <i class="fa fa-expand"></i>

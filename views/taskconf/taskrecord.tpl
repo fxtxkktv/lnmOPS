@@ -40,7 +40,7 @@
             </div>
             <div class="modal-body" style="width:100%">
                   <label class="" for="inputSuccess1">返回结果</label>
-                  <textarea style="width:100%;height:250px;background-color:#000000;color:#33ff33;resize:none;font-family:sans-serif;" readonly>{{info.get('result','')}}</textarea>
+                  <textarea style="width:100%;height:250px;background-color:#000000;color:#33ff33;resize:none;font-family:sans-serif;" maxlength="2048" readonly>{{info.get('result','')}}</textarea>
             </div>
             <div class="modal-footer">
                         <a style="float:left" href="/tasklogs/{{info.get('jobid','')}}" class="btn btn-primary ">返回记录列表</a>

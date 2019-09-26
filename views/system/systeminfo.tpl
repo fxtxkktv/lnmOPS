@@ -15,11 +15,11 @@
                 </div><!--Widget Header-->
    <div class="row">
     <div class="box col-md-6">
-        <div class="box-inner widget" style="background: #fff;">
+        <div class="box-inner widget" style="height:337px;background: #fff;">
             <div class="box-header well" data-original-title>
                 <i class="glyphicon glyphicon-list-alt widget-icon"></i>
 		<span class="widget-caption themesecondary">系统信息</span>
-		<!--a href="/systeminfomore" style="float:right;" ><i class="fa fa-sliders"></i></a-->
+		<a href="/systeminfo" style="float:right;" ><i class="fa fa-sliders"></i></a>
             </div>
 	
             <div class="box-content">
@@ -66,7 +66,7 @@
    </div>
 
    <div class="box col-md-6">
-        <div class="box-inner widget" style="background: #fff;">
+        <div class="box-inner widget" style="height:337px;background: #fff;">
             <div class="box-header well" data-original-title="">
                 <i class="glyphicon glyphicon-list-alt widget-icon"></i>
                 <span class="widget-caption themesecondary">管理日志</span>

@@ -67,10 +67,12 @@
                         </tr>
                         %for sjob in sjobdata:
                         <tr>
-                        <td><a href="/taskrecord/{{sjob.get('id','')}}">{{sjob.get('taskname','')}}</a></td>
+                        <td><a href="/taskrecord/{{sjob.get('jid','')}}">{{sjob.get('taskname','')}}</a></td>
                         <td class="center" style="width:200px;">{{sjob.get('jobtime','')}}</td>
-                        %if sjob.get('runstatus','') == 0:
+                        %if sjob.get('run_status','') == 0:
                            <td class="center" style="color:green;width:100px;">正常</td>
+                        %elif sjob.get('run_status','') == 8318:
+                           <td class="center" style="color:grey;width:100px;">未知</td>
                         %else:
                            <td class="center" style="color:red;width:100px;">异常</td>
                         %end
@@ -98,10 +100,12 @@
                         </tr>
                         %for errjob in errjobdata:
                         <tr>
-                        <td><a href="/taskrecord/{{errjob.get('id','')}}">{{errjob.get('taskname','')}}</a></td>
+                        <td><a href="/taskrecord/{{errjob.get('jid','')}}">{{errjob.get('taskname','')}}</a></td>
                         <td class="center" style="width:200px;">{{errjob.get('jobtime','')}}</td>
-                        %if errjob.get('runstatus','') == 0:
+                        %if errjob.get('run_status','') == 0:
                            <td class="center" style="color:green;width:100px;">正常</td>
+                        %elif errjob.get('run_status','') == 8318:
+                           <td class="center" style="color:grey;width:100px;">未知</td>
                         %else:
                            <td class="center" style="color:red;width:100px;">异常</td>
                         %end
