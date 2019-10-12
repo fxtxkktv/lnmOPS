@@ -16,6 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `apimgr`
+--
+
+DROP TABLE IF EXISTS `apimgr`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `apimgr` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `api_name` varchar(255) NOT NULL,
+  `api_desc` varchar(255) DEFAULT NULL,
+  `api_version` varchar(255) NOT NULL,
+  `api_options` varchar(255) DEFAULT NULL,
+  `api_safe` varchar(255) NOT NULL,
+  `api_script_path` varchar(255) DEFAULT NULL,
+  `api_type` int(11) NOT NULL,
+  `api_host` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `apscheduler_jobs`
 --
 
@@ -44,11 +65,35 @@ CREATE TABLE `apscheduler_logs` (
   `jobtime` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `apimode` varchar(255) DEFAULT NULL,
   `hostlist` varchar(255) DEFAULT NULL,
-  `runstatus` int(1) DEFAULT NULL,
   `runFuncAPI` varchar(255) DEFAULT NULL,
-  `jobresult` longtext,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=547868 DEFAULT CHARSET=utf8;
+  `jid` varchar(255) NOT NULL,
+  `full_ret` longtext NOT NULL,
+  `run_status` int(11) DEFAULT '8318',
+  PRIMARY KEY (`id`),
+  KEY `index_jid` (`jobid`),
+  KEY `index_id` (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2937608 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `faultrecords`
+--
+
+DROP TABLE IF EXISTS `faultrecords`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `faultrecords` (
+  `ftrank` varchar(255) NOT NULL DEFAULT '',
+  `fttype` varchar(255) DEFAULT NULL,
+  `ftlevel` varchar(255) DEFAULT NULL,
+  `startdate` date DEFAULT NULL,
+  `stopdate` date DEFAULT NULL,
+  `ftobject` varchar(255) DEFAULT NULL,
+  `comment` varchar(255) DEFAULT NULL,
+  `fname` varchar(255) NOT NULL,
+  `ftfile` longblob NOT NULL,
+  PRIMARY KEY (`ftrank`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -105,7 +150,7 @@ CREATE TABLE `logrecord` (
   `objtext` varchar(255) DEFAULT NULL,
   `objhost` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=981 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1030 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +189,7 @@ CREATE TABLE `nodegrpmgr` (
   `grpdesc` varchar(255) DEFAULT NULL,
   `grpnodes` longtext,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=28 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -179,11 +224,11 @@ CREATE TABLE `softwaremgr` (
   `softversion` varchar(255) DEFAULT NULL,
   `softdate` date DEFAULT NULL,
   `supplier` varchar(255) DEFAULT NULL,
-  `filename` varchar(255) DEFAULT NULL,
-  `softfile` blob,
+  `filename` varchar(255) NOT NULL,
+  `softfile` longblob NOT NULL,
   `comment` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=50 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=120 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -203,7 +248,7 @@ CREATE TABLE `sshmgr` (
   `status` int(11) DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `hostaddr` (`hostaddr`)
-) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -236,7 +281,7 @@ CREATE TABLE `sysinfo` (
   `tim` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=204869 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=394276 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -272,7 +317,7 @@ CREATE TABLE `taskgrpmgr` (
   `grpdesc` varchar(255) DEFAULT NULL,
   `grptasks` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=30 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=33 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -305,7 +350,7 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-03-23 10:50:19
+-- Dump completed on 2019-10-12  9:23:37
 -- MySQL dump 10.13  Distrib 5.1.73, for redhat-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: lnmopsdb
@@ -343,7 +388,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-03-23 10:50:19
+-- Dump completed on 2019-10-12  9:23:37
 -- MySQL dump 10.13  Distrib 5.1.73, for redhat-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: lnmopsdb
@@ -381,4 +426,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-03-23 10:50:19
+-- Dump completed on 2019-10-12  9:23:37
