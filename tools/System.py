@@ -1269,7 +1269,10 @@ def gettaskrecord(id):
     else:
       for i in info[0].get('full_ret').split('_sep_') :
           if i != "":
-             infos['result'] += ' 操作节点:\t'+str(json.loads(i).get('id'))+'\t返回代码:\t'+str(json.loads(i).get('retcode'))+'\n----------------------STDOUT---------------------\n'+str(json.loads(i).get('return'))+'\n------------------------------------------------\n\n'
+             try :
+                 infos['result'] += ' 操作节点:\t'+str(json.loads(i).get('id'))+'\t返回代码:\t'+str(json.loads(i).get('retcode'))+'\n----------------------STDOUT---------------------\n'+str(json.loads(i).get('return'))+'\n------------------------------------------------\n\n'
+             except :
+                 infos['result'] = i
     infos['jobid'] = info[0].get('jobid')
     infos['comment'] = '日志ID:%s\n执行时间:%s\n操作模式:%s;操作主机:%s;运行状态:%s' % (id,info[0].get('jobtime'),info[0].get('apimode'),info[0].get('hostlist'),info[0].get('success'))
     infos['runcmd'] = info[0].get('runFuncAPI')

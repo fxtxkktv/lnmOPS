@@ -44,7 +44,12 @@ def main(mode):
             if ret['fun'] == "saltutil.find_job" or ret['fun'] == "mine.update":
                continue
             # 重写SALT-SSH模块中无法获取success状态，统一获取retcode代码
-            ret['success'] = ret['retcode']
+            try:
+               int(ret['retcode'])
+               ret['success'] = ret['retcode']
+            except:
+               ret['retcode'] = 0
+               ret['success'] = 0
             try:
                ret['return']
             except:

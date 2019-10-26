@@ -34,7 +34,7 @@ yum install -y gcc mysql-server mysql-devel MySQL-python <br>
 安装Python程序扩展包 <br>
 pip install -r readme/requirements.txt <br>
 安装SALT模块[采用编译安装方式]<br>
-pip install --global-option="--salt-root-dir=$(pwd)/plugins/salt/" salt==2018.3.3 <br>
+pip install --global-option="--salt-root-dir=$(pwd)/plugins/salt/" salt==2018.3.4 <br>
 
 3. 创建数据库并恢复数据模版 <br>
 [创建数据库]: # mysql -u root -p -e "create database lnmopsdb" <br>
