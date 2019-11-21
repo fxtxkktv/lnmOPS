@@ -1448,11 +1448,16 @@ def getapilist():
     return json.dumps(result)
 
 @route('/wsapi/<urlmap>')
-def wsapi(urlmap):
+def wsapi2(urlmap):
+   s = request.environ.get('beaker.session')
+   return redirect('/wsapi?%s' % urlmap)
+
+@route('/wsapi')
+def wsapi():
     import urlparse
     s = request.environ.get('beaker.session')
     msg={'return':255,'message':'no found appid info...'}
-    odict=urlparse.parse_qs(urlparse.urlparse('wsapi?%s' % urlmap).query)
+    odict=urlparse.parse_qs(urlparse.urlparse('wsapi?%s' % request.environ.get('QUERY_STRING')).query)
     try:
        appid=int(odict['appid'][0])
     except:
