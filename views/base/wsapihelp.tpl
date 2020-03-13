@@ -35,8 +35,8 @@
             &nbsp;&nbsp;    opts=$(echo $i|sed 's/_^_/=/g')
             &nbsp;&nbsp;    export $opts
             &nbsp;&nbsp;done 
-            &nbsp;&nbsp;#参数base64中文解码 
-            &nbsp;&nbsp;echo "$name"|base64 -d >/dev/null 2>&1 && name=$(echo "$name"|base64 -d) 
+            &nbsp;&nbsp;#参数中文解码[url编码方式] 
+            &nbsp;&nbsp;printf $(echo -n $name|sed 's/\\/\\\\/g;s/\(%\)\([0-9a-fA-F][0-9a-fA-F]\)/\\x\2/g')"\n"
             </pre>
             <pre>
             Python接参实例:
@@ -45,10 +45,11 @@
             &nbsp;&nbsp;optdict={}
             &nbsp;&nbsp;for i in sys.argv[1].split('_^_^_'):
             &nbsp;&nbsp;    if i != "":
-            &nbsp;&nbsp;       # 指定参数base64中文解码
+            &nbsp;&nbsp;       # 指定中文参数url解码
+            &nbsp;&nbsp;       import urllib
             &nbsp;&nbsp;       if i.split('_^_')[0]=="name":
             &nbsp;&nbsp;          try:
-            &nbsp;&nbsp;            newstr=base64.b64decode(i.split('_^_')[1])
+            &nbsp;&nbsp;            newstr=urllib.unquote(i.split('_^_')[1])
             &nbsp;&nbsp;          except:
             &nbsp;&nbsp;            newstr=i.split('_^_')[1]
             &nbsp;&nbsp;       else:

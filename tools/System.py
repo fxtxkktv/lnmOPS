@@ -1454,7 +1454,7 @@ def wsapi2(urlmap):
 
 @route('/wsapi')
 def wsapi():
-    import urlparse
+    import urlparse,urllib
     s = request.environ.get('beaker.session')
     msg={'return':255,'message':'no found appid info...'}
     odict=urlparse.parse_qs(urlparse.urlparse('wsapi?%s' % request.environ.get('QUERY_STRING')).query)
@@ -1478,7 +1478,7 @@ def wsapi():
           for k,v in odict.items():
             if k in result[0].get('api_options').split(','):
               if is_chinese(v[0]) == True:
-                 newv=base64.b64encode(v[0])
+                 newv=urllib.quote(v[0])
               else:
                  newv=v[0]
               FormatOpts += '%s_^_%s_^_^_' % (k,newv)

@@ -85,8 +85,7 @@
                         <div class="form-control">
                            <div class="upload-block" id="selectUploadFile">
                           <form id="fileForm" class="" enctype="multipart/form-data" method="post" name="fileinfo">
-                          <input type="file" accept=".jpg,.bmp,.txt,.zip,.rar,.xls,.xlsx,.doc,.docx,.pdf" id="upload" name="upload" draggable="true"
-/>
+                          <input type="file" accept=".jpg,.bmp,.txt,.zip,.rar,.xls,.xlsx,.doc,.docx,.pdf" id="upload" name="upload" draggable="true" />
                           <input type="hidden" name="filepath" value="" />
                           <div id="progress" class="progress"></div>
                           </form>
