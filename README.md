@@ -3,34 +3,24 @@
 ### 2.支持JOB任务远程调用、SSH模式调用、SALT模式调用等
 ### 3.集群管理、资产管理、故障管理【机房+主机+硬件+软件】
 ### 4.支持Web SSH在线登录管理
-### 5.支持WebService精简配置，无缝对接各系统脚本传参
+### 5.支持WebService精简配置，无缝对接各系统脚本
 ### 6.支持保留所有任务运行记录查询
 
 ## 安装步骤(仅针对centos/redhat发行版,其他版本自行测试)
 
-1. 安装初始化环境 python >=2.7 (推荐lnmos定制版本,可以在"客户端下载"中获取) <br>
-rpm -i Py27lnmos-2.7.15-6.el6.rpm <br>
-加载python环境 <br>
-export PATH=$PATH:/opt/Py27lnmos/bin <br>
-检测是否安装必须工具 <br>
-yum -y install wget git <br>
-安装pip工具 <br>
-wget https://bootstrap.pypa.io/get-pip.py <br>
-/opt/Py27lnmos/bin/python get-pip.py <br>
-安装virtualenv组件[使程序运行环境和系统环境分离] <br>
-/opt/Py27lnmos/bin/pip install virtualenv <br> 
-获取程序代码 <br>
+1. 安装lnmOS环境,从[fxtxkktv.github.io](https://raw.githubusercontent.com/fxtxkktv/fxtxkktv.github.io/master/files/Install_LnmOS_env.sh)获取简化安装Shell脚本<br>
+wget https://raw.githubusercontent.com/fxtxkktv/fxtxkktv.github.io/master/files/Install_LnmOS_env.sh <br>
+运行脚本<br>
+chmod +x ./Install_LnmOS_env.sh && ./Install_LnmOS_env.sh <br>
+
+2. 获取程序代码 <br>
 git clone https://github.com/fxtxkktv/lnmOPS.git <br>
 进入程序目录 <br>
 cd lnmOPS <br>
 创建程序虚拟环境 <br>
-virtualenv -p /opt/Py27lnmos/bin/python --no-site-packages venv <br>
+/opt/Py27lnmos/bin/virtualenv -p /opt/Py27lnmos/bin/python venv <br>
 进入virtualenv环境 <br>
 source venv/bin/activate <br>
-
-2. 安装程序运行模块 <br>
-MySQL服务 <br>
-yum install -y gcc mysql-server mysql-devel MySQL-python <br>
 安装Python程序扩展包 <br>
 pip install -r readme/requirements.txt <br>
 安装SALT模块[采用编译安装方式]<br>
@@ -38,7 +28,7 @@ pip install --global-option="--salt-root-dir=$(pwd)/plugins/salt/" salt==2018.3.
 
 3. 创建数据库并恢复数据模版 <br>
 [创建数据库]: # mysql -u root -p -e "create database lnmopsdb" <br>
-[恢复数据模版]: # mysql -u root -p lnmopsdb < readme/xxxxxx_Init.sql <br>
+[恢复数据模版]: # mysql -u root -p lnmopsdb < readme/db_schema.sql <br>
 [配置数据库连接及其他]: # vim config/config.ini <br>
 
 4. 正式运行程序 <br>
@@ -66,7 +56,7 @@ var fs = require('fs'); //第一行添加 <br>
 ==========分割线====================================================<br>
 
 [手动启动webssh,后续将随lnmOPS服务自动启动]: npm start <br>
-主要配置参数文件，可按自行参数自行修改。强烈建议关闭外部映射，通过VPN方式进行远程维护 <br>
+主要配置参数文件，自行修改。强烈建议关闭外部映射，通过VPN方式进行远程维护 <br>
 config.json （修改监听端口）<br>
 erver/socket.js (修改验证方式)<br>
 

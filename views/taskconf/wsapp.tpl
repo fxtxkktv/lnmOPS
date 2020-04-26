@@ -1,3 +1,3 @@
 %if msg.get('message'):
-    {{msg}}
+    {{ msg }}
 %end
