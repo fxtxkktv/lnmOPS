@@ -23,7 +23,7 @@
             <br/>
             &nbsp;&nbsp;&nbsp;&nbsp;API是以webservice方式把系统中通过指令传参形式转化为URL传参。<br /> 
             <pre>
-            URL请求格式: http[s]://ip:port/wsapi/wsapi/appid=[api序号]&[参数1]=[参数值1]&[参数2]=[参数值2]
+            URL请求格式: http[s]://ip:port/wsapi?appid=[api序号]&[参数1]=[参数值1]&[参数2]=[参数值2]
             传参转换格式：_^_^_ [一级分割符] _^_ [二级分割符]
             例子: uid_^_lnmos_^_^_number_^_13688888888_^_^_name_^_5Lit5paH_^_^_
             </pre>
