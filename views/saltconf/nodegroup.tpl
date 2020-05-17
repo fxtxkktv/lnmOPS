@@ -225,6 +225,7 @@ $(function(){
                 var arr = result[0]['grpnodes'].split(',');
                 //console.log(arr)
                 $('#grpnodes').selectpicker('val',arr); //处理grpnodes选择默认值
+                document.getElementById("grpname").readOnly=true;
                 editId = result[0]['id'];
 				isEdit = 1;
     		}

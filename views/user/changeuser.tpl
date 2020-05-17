@@ -1,4 +1,4 @@
-%rebase base position='修改用户', managetopli="vpnserv"
+%rebase base position='修改用户', managetopli="system"
 <div class="page-body">
     <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -24,7 +24,7 @@
 		<div class="modal-body">
                         <div class="input-group">
                             <span class="input-group-addon">账号: </span>
-                            <input type="text" style="width:420px" class="form-control" id="" name="username" aria-describedby="inputGroupSuccess4Status" value="{{info.get('username','')}}">
+                            <input type="text" style="width:420px" class="form-control" id="" name="username" aria-describedby="inputGroupSuccess4Status" value="{{info.get('username','')}}" readonly>
                         </div>
                 </div>
 		<div class="modal-body">

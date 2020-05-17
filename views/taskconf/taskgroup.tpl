@@ -225,6 +225,7 @@ $(function(){
                 var arr = result[0]['grptasks'].split(',');
                 //console.log(arr)
                 $('#grptasks').selectpicker('val',arr); //处理grptasks选择默认值
+                document.getElementById("grpname").readOnly=true;
                 editId = result[0]['id'];
 				isEdit = 1;
     		}

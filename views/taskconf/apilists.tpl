@@ -290,6 +290,7 @@ $(function(){
                 $('#modalTitle').html('API更新');     //头部修改
                 $('#hidInput').val('1');            //修改标志
                 $('#myModal').modal('show');
+                document.getElementById("api_name").readOnly=true;
                 editId = result[0]['id'];
 				isEdit = 1;
     		}
