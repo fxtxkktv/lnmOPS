@@ -10,7 +10,7 @@ fi
 
 source $wkdir/venv/bin/activate
 
-pidfile="/tmp/myapp.pid"
+pidfile="$wkdir/logs/myapp.pid"
 myapp="$wkdir/main.py"
 logfile="$wkdir/logs/myapp_run.log"
 
@@ -28,14 +28,17 @@ case "$1" in
         ;;
   stop)
         echo -en "Stoping WebServer:\t\t"
-        # 这个地方存在误杀情况，依赖python环境启动的服务将被误杀
-        #$wkdir/sbin/start-stop-daemon --stop --exec $wkdir/venv/bin/python >/dev/null 2>&1
-        if ps -ef | grep "$myapp" | grep -v grep | awk '{print $2}' | xargs kill -9 &> /dev/null; then
-             echo "Done..."             
-             RETVAL=0
+        $wkdir/sbin/start-stop-daemon --stop --exec $myapp >/dev/null 2>&1
+        if [ -f $pidfile ];then
+           kill -9 $(cat $pidfile) >/dev/null 2>&1
+        fi
+        RETVAL=$?
+        #echo
+        if [ $RETVAL -eq 0 ] ;then
+           rm -f $pidfile
+           echo "Done..."
         else
-             echo "Failed"
-             RETVAL=1
+           echo "Failed"
         fi
         ;;
   status)
