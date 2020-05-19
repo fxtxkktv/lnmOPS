@@ -209,6 +209,7 @@ $(function(){
         $('#modalTitle').html('添加用户');
         $('#hidInput').val('0');
         $('#myModal').modal('show');
+        document.getElementById("username").readOnly=false;
         $('#modalForm')[0].reset();
         isEdit = 0;
     });
@@ -243,6 +244,7 @@ $(function(){
                 $('#access').val(result[0]['access']);
                 $('#modalTitle').html('修改用户');     //头部修改
                 $('#hidInput').val('1');            //修改标志
+                document.getElementById("username").readOnly=true;
                 $('#myModal').modal('show');
                 editId = result[0]['id'];
 		isEdit = 1;

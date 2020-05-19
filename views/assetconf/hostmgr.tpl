@@ -224,6 +224,7 @@ $(function(){
         $('#selecthd').selectpicker('val',['noneSelectedText']); //清除默认值
         $('#hidInput').val('0');
         $('#myModal').modal('show');
+        document.getElementById("hostname").readOnly=false;
         $('#modalForm')[0].reset();
         isEdit = 0;
     });

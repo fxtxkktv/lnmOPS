@@ -206,6 +206,7 @@ $(function(){
         $('#modalTitle').html('新增机房');
         $('#hidInput').val('0');
         $('#myModal').modal('show');
+        document.getElementById("roomname").readOnly=false;
         $('#modalForm')[0].reset();
         isEdit = 0;
     });

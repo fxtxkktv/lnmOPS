@@ -235,6 +235,7 @@ $(function(){
         $('#modalTitle').html('新增计划任务');
         $('#hidInput').val('0');
         $('#myModal').modal('show');
+        document.getElementById("hostaddr").readOnly=false;
         $('#modalForm')[0].reset();
         isEdit = 0;
     });

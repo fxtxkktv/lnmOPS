@@ -251,6 +251,7 @@ $(function(){
         $('#modalTitle').html('新增API');
         $('#hidInput').val('0');
         $('#myModal').modal('show');
+        document.getElementById("api_name").readOnly=false;
         $('#modalForm')[0].reset();
         isEdit = 0;
     });

@@ -237,6 +237,8 @@ $(function(){
         $('#modalTitle').html('新增软件信息');
         $('#hidInput').val('0');
         $('#myModal').modal('show');
+        document.getElementById("softnumber").readOnly=false;
+        document.getElementById("softname").readOnly=false;
         $('#modalForm')[0].reset();
         isEdit = 0;
     });
