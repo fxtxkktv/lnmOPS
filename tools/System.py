@@ -1498,7 +1498,7 @@ def wsapi():
        else:
          msg={'return':255,'message':'Access REJECT: [IPADDRESS: %s]' % request.environ.get('REMOTE_ADDR')}
     #print json.dumps(msg,ensure_ascii=False) #返回内容含中文处理
-    return template('wsapp.tpl',session=s,msg=msg)
+    return template('wsapp.tpl',session=s,msg=json.dumps(msg,ensure_ascii=False))
 
 @route('/delapirecords/<id>')
 @checkAccess
