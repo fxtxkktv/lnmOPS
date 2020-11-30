@@ -1485,7 +1485,7 @@ def wsapi():
           #print FormatOpts
           if FormatOpts == "":
              msg={'return':255,'message':u'no found options (num > 1)'}
-             return template('wsapp.tpl',session=s,msg=msg)
+             return { json.dumps(msg,ensure_ascii=False) }
           if result[0].get('api_type') == 2:
              #print result[0].get('api_script_path'),FormatOpts
              x,stdout = cmds.gettuplerst('salt-ssh "%s" -r "%s %s" -L' % (result[0].get('hostaddr'),result[0].get('api_script_path'),FormatOpts))
@@ -1498,7 +1498,7 @@ def wsapi():
        else:
          msg={'return':255,'message':'Access REJECT: [IPADDRESS: %s]' % request.environ.get('REMOTE_ADDR')}
     #print json.dumps(msg,ensure_ascii=False) #返回内容含中文处理
-    return template('wsapp.tpl',session=s,msg=json.dumps(msg,ensure_ascii=False))
+    return { json.dumps(msg,ensure_ascii=False) }
 
 @route('/delapirecords/<id>')
 @checkAccess

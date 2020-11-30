@@ -39,8 +39,13 @@ case "$1" in
   status)
         psnum=$(ps -ef | grep "$progname" | grep -v grep | awk '{print $2}' | xargs)
         if [ x"$psnum" != x"" ]; then
-             echo "$progname is runing... $psnum"             
+           if [ -d $wkdir/plugin/salt/jid/$(date +%Y%m%d) ];then
+             echo "$progname is runing... $psnum"
              RETVAL=0
+           else
+             echo "$progname is server Error ..."
+             RETVAL=1
+           fi
         else
              echo "$progname is not runing..."
              RETVAL=1
