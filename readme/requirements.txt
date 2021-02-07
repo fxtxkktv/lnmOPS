@@ -6,7 +6,7 @@ gevent==1.4.0
 MySQL-python==1.2.5
 netaddr==0.7.19
 netifaces==0.10.9
-psutil==5.6.1
+psutil==5.6.6
 pycrypto==2.6.1
 requests==2.21.0
 SQLAlchemy==1.2.16
