@@ -1,6 +1,6 @@
 APScheduler==3.6.0
 Beaker==1.10.1
-bottle==0.12.16
+bottle==0.12.19
 chardet==3.0.4
 gevent==1.4.0
 MySQL-python==1.2.5
